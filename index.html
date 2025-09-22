@@ -4,181 +4,33 @@
 <meta charset="UTF-8">
 <title>Cloud Mart</title>
 <style>
-
-body { 
-  font-family: Arial, sans-serif;
-   background:#f9f9f9;
-    margin:0;
-     padding:0;
-    
-    }
-
-header { 
-  background:#fff;
-  padding:15px;
-  text-align:center;
-  font-size:22px;
-  gap:10px; /* logo আর নামের মাঝে ফাঁকা */
-  font-weight:bold;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
-
-    }
-
-header .logo {
-  height: 40px; /* logo এর সাইজ */
-  width: auto;
-  border-radius:8px; /* চাইলে logo গোলাকার/rounded করতে পারো */
-}
-
-.container {
-  
-  padding:20px;
-            
-    }
-
-.search-bar {
-   margin-bottom:20px;
-              
-    }
-
-input, select, button {
-                
-  padding:10px;
-  margin:5px 0;
-  border:1px solid #ccc;
-  border-radius:5px;
-                  
-    }
-
-.product-grid { 
-  
-  display:grid; 
-  grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); 
-  gap:20px; }
-
-.card { 
-  background:#fff; 
-  padding:15px; 
-  border-radius:10px; 
-  box-shadow:0 2px 5px rgba(0,0,0,0.1); 
-  text-align:center; 
-  opacity:0; 
-  transform:translateY(20px); 
-  transition:0.5s; 
-
-}
-
-.card.show { 
-  opacity:1; 
-  transform:translateY(0); 
-}
-
-.card img { 
-  
-  width:100%; 
-  height:140px; 
-  object-fit:cover; 
-  border-radius:8px; 
-  transition:0.3s; 
-
-}
-
-.card:hover img { 
-  transform:scale(1.05); 
-
-}
-
-.card button { 
-  
-  background:#007bff; 
-  color:#fff; border:none; 
-  padding:10px; 
-  width:100%; 
-  border-radius:5px; 
-  cursor:pointer; 
-  transition:0.3s; 
-
-}
-
-.card button:hover { 
-  background:#0056b3; 
-
-}
-
-.modal { 
-  
-  display:none; 
-  position:fixed; 
-  top:0; 
-  left:0; 
-  width:100%; 
-  height:100%; 
-  background:rgba(0,0,0,0.5); 
-  justify-content:center; 
-  align-items:center; 
-  opacity:0; 
-  transition:0.3s; 
-
-}
-
-.modal.show { 
-  display:flex; 
-  opacity:1; 
-
-}
-
-.modal-content { 
-  
-  background:#fff;
-   padding:20px; 
-   border-radius:10px; 
-   width:320px; 
-   animation:fadeIn 0.5s; 
-  
-  }
-
-@keyframes fadeIn { 
-  from
-  
-  {
-    
-    opacity:0; 
-    transform:translateY(-20px);
-  
-  } to
-  
-  {
-    
-    opacity:1; 
-    transform:translateY(0);
-  
-  } }
-
-.close { 
-  
-  float:right; 
-  cursor:pointer; 
-  font-weight:bold; 
-
-}
-
-#bkashFields,
-#nagadFields { 
-  
-  display:none; 
-
-}
-
+/* ---- CSS একই রাখা হলো ---- */
+body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0; }
+header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+header .logo { height: 40px; width: auto; border-radius:8px;}
+.container { padding:20px; }
+.search-bar { margin-bottom:20px; }
+input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; }
+.product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
+.card { background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); text-align:center; opacity:0; transform:translateY(20px); transition:0.5s; }
+.card.show { opacity:1; transform:translateY(0); }
+.card img { width:100%; height:140px; object-fit:cover; border-radius:8px; transition:0.3s; }
+.card:hover img { transform:scale(1.05); }
+.card button { background:#007bff; color:#fff; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; transition:0.3s; }
+.card button:hover { background:#0056b3; }
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; opacity:0; transition:0.3s; }
+.modal.show { display:flex; opacity:1; }
+.modal-content { background:#fff; padding:20px; border-radius:10px; width:320px; animation:fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(-20px);} to { opacity:1; transform:translateY(0);} }
+.close { float:right; cursor:pointer; font-weight:bold; }
+#bkashFields, #nagadFields { display:none; }
 </style>
 </head>
 <body>
 
 <header>
-
   <img src="logo.png" alt="Cloud Mart logo" class="logo">
-
   <span>Cloud Mart</span>
-
 </header>
 
 <div class="container">
@@ -219,26 +71,58 @@ input, select, button {
   </div>
 </div>
 
+<!-- ✅ Firebase CDN SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+
 <script>
+/* ✅ Firebase Config তোমার দেওয়া */
+const firebaseConfig = {
+  apiKey: "AIzaSyCl9ENd3XOP1KeutD7s1zSiXYSuz4VIqGU",
+  authDomain: "cloud-mart01.firebaseapp.com",
+  databaseURL: "https://cloud-mart01-default-rtdb.firebaseio.com",
+  projectId: "cloud-mart01",
+  storageBucket: "cloud-mart01.firebasestorage.app",
+  messagingSenderId: "656495467691",
+  appId: "1:656495467691:web:b0c0f7356b36af5de12bee",
+  measurementId: "G-PXLYR809MM"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ---- DOM Elements ---- */
 const productGrid=document.getElementById("productGrid");
 const search=document.getElementById("search");
 const categoryFilter=document.getElementById("categoryFilter");
 const orderModal=document.getElementById("orderModal");
 const orderProduct=document.getElementById("orderProduct");
-const orderDescription = document.getElementById("orderDescription");
+const orderDescription=document.getElementById("orderDescription");
 const paymentMethod=document.getElementById("paymentMethod");
 const bkashFields=document.getElementById("bkashFields");
 const nagadFields=document.getElementById("nagadFields");
 const adminBkashNum=document.getElementById("adminBkashNum");
 const adminNagadNum=document.getElementById("adminNagadNum");
 
-let products=JSON.parse(localStorage.getItem("products"))||[];
-let orders=JSON.parse(localStorage.getItem("orders"))||[];
-let bkashNumber=localStorage.getItem("bkashNumber")||"";
-let nagadNumber=localStorage.getItem("nagadNumber")||"";
+/* ---- Load Payment Numbers ---- */
+firebase.database().ref("payment/bkash").on("value",snap=>{
+  adminBkashNum.textContent = snap.val() || "";
+});
+firebase.database().ref("payment/nagad").on("value",snap=>{
+  adminNagadNum.textContent = snap.val() || "";
+});
 
-adminBkashNum.textContent=bkashNumber;
-adminNagadNum.textContent=nagadNumber;
+/* ---- Render Products from DB ---- */
+let products=[];
+firebase.database().ref("products").on("value",snapshot=>{
+  products=[];
+  productGrid.innerHTML="";
+  snapshot.forEach(child=>{
+    let p=child.val();
+    products.push(p);
+  });
+  renderCategories();
+  renderProducts();
+});
 
 function renderCategories(){
   let cats=[...new Set(products.map(p=>p.category))];
@@ -280,18 +164,34 @@ function openModal(name, desc){
 function closeModal(){ orderModal.classList.remove("show"); }
 
 paymentMethod.addEventListener("change",()=>{
-  if(paymentMethod.value==="Bkash"){
-    bkashFields.style.display="block";
-    nagadFields.style.display="none";
-  } else if(paymentMethod.value==="Nagad"){
-    nagadFields.style.display="block";
-    bkashFields.style.display="none";
-  } else {
-    bkashFields.style.display="none";
-    nagadFields.style.display="none";
-  }
+  if(paymentMethod.value==="Bkash"){ bkashFields.style.display="block"; nagadFields.style.display="none"; }
+  else if(paymentMethod.value==="Nagad"){ nagadFields.style.display="block"; bkashFields.style.display="none"; }
+  else { bkashFields.style.display="none"; nagadFields.style.display="none"; }
 });
 
+/* ---- Save Order to Firebase ---- */
+document.getElementById("orderForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const newOrder={
+    product:orderProduct.value,
+    description:orderDescription.value,
+    name:document.getElementById("userName").value,
+    email:document.getElementById("userEmail").value,
+    phone:document.getElementById("userPhone").value,
+    payment:paymentMethod.value,
+    sendNumber:paymentMethod.value==="Bkash"?document.getElementById("sendNumberBkash").value:document.getElementById("sendNumberNagad").value,
+    trnx:paymentMethod.value==="Bkash"?document.getElementById("trnxIDBkash").value:document.getElementById("trnxIDNagad").value,
+    date:new Date().toLocaleString()
+  };
+  firebase.database().ref("orders").push(newOrder).then(()=>{
+    alert("Order Submitted!");
+    printInvoice(newOrder);
+    e.target.reset();
+    closeModal();
+  });
+});
+
+/* ---- Print Invoice ---- */
 function printInvoice(order){
   let w = window.open('', '', 'width=800,height=600');
   w.document.write(`
@@ -321,39 +221,13 @@ function printInvoice(order){
       </body>
     </html>
   `);
-  w.document.close(); // খুব জরুরি
+  w.document.close();
   w.print();
 }
 
-
-document.getElementById("orderForm").addEventListener("submit",e=>{
-  e.preventDefault();
-  const newOrder={
-    product:orderProduct.value,
-    description:orderDescription.value,
-    name:document.getElementById("userName").value,
-    email:document.getElementById("userEmail").value,
-    phone:document.getElementById("userPhone").value,
-    payment:paymentMethod.value,
-    sendNumber:paymentMethod.value==="Bkash"?document.getElementById("sendNumberBkash").value:
-                 document.getElementById("sendNumberNagad").value,
-    trnx:paymentMethod.value==="Bkash"?document.getElementById("trnxIDBkash").value:
-          document.getElementById("trnxIDNagad").value,
-    date:new Date().toLocaleString()
-  };
-  orders.push(newOrder);
-  localStorage.setItem("orders",JSON.stringify(orders));
-  alert("Order Submitted!");
-  printInvoice(newOrder);
-  e.target.reset();
-  closeModal();
-});
-
+/* ---- Filter Events ---- */
 search.addEventListener("input",renderProducts);
 categoryFilter.addEventListener("change",renderProducts);
-
-renderCategories();
-renderProducts();
 </script>
 </body>
 </html>
