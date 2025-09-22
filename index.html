@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <title>Cloud Mart</title>
 <style>
-/* ---- CSS একই রাখা হলো ---- */
+/* --- আগের স্টাইল 그대로 রাখা হলো --- */
 body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0; }
-header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-header .logo { height: 40px; width: auto; border-radius:8px;}
+header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+header .logo { height: 40px; width: auto; border-radius:8px; }
 .container { padding:20px; }
 .search-bar { margin-bottom:20px; }
 input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; }
@@ -21,9 +21,9 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; opacity:0; transition:0.3s; }
 .modal.show { display:flex; opacity:1; }
 .modal-content { background:#fff; padding:20px; border-radius:10px; width:320px; animation:fadeIn 0.5s; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(-20px);} to { opacity:1; transform:translateY(0);} }
+@keyframes fadeIn { from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);} }
 .close { float:right; cursor:pointer; font-weight:bold; }
-#bkashFields, #nagadFields { display:none; }
+#bkashFields,#nagadFields { display:none; }
 </style>
 </head>
 <body>
@@ -71,12 +71,12 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
   </div>
 </div>
 
-<!-- ✅ Firebase CDN SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
 
 <script>
-/* ✅ Firebase Config তোমার দেওয়া */
+// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyCl9ENd3XOP1KeutD7s1zSiXYSuz4VIqGU",
   authDomain: "cloud-mart01.firebaseapp.com",
@@ -87,10 +87,11 @@ const firebaseConfig = {
   appId: "1:656495467691:web:b0c0f7356b36af5de12bee",
   measurementId: "G-PXLYR809MM"
 };
+
+// Initialize Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* ---- DOM Elements ---- */
 const productGrid=document.getElementById("productGrid");
 const search=document.getElementById("search");
 const categoryFilter=document.getElementById("categoryFilter");
@@ -103,22 +104,22 @@ const nagadFields=document.getElementById("nagadFields");
 const adminBkashNum=document.getElementById("adminBkashNum");
 const adminNagadNum=document.getElementById("adminNagadNum");
 
-/* ---- Load Payment Numbers ---- */
-firebase.database().ref("payment/bkash").on("value",snap=>{
-  adminBkashNum.textContent = snap.val() || "";
-});
-firebase.database().ref("payment/nagad").on("value",snap=>{
-  adminNagadNum.textContent = snap.val() || "";
+let products=[];
+
+// Load Payment Numbers
+firebase.database().ref("payment").on("value",snap=>{
+  const data=snap.val();
+  if(data){
+    adminBkashNum.textContent=data.bkash||"";
+    adminNagadNum.textContent=data.nagad||"";
+  }
 });
 
-/* ---- Render Products from DB ---- */
-let products=[];
+// Load Products Realtime
 firebase.database().ref("products").on("value",snapshot=>{
   products=[];
-  productGrid.innerHTML="";
   snapshot.forEach(child=>{
-    let p=child.val();
-    products.push(p);
+    products.push(child.val());
   });
   renderCategories();
   renderProducts();
@@ -160,16 +161,22 @@ function openModal(name, desc){
   nagadFields.style.display="none";
   paymentMethod.value="";
 }
-
 function closeModal(){ orderModal.classList.remove("show"); }
 
 paymentMethod.addEventListener("change",()=>{
-  if(paymentMethod.value==="Bkash"){ bkashFields.style.display="block"; nagadFields.style.display="none"; }
-  else if(paymentMethod.value==="Nagad"){ nagadFields.style.display="block"; bkashFields.style.display="none"; }
-  else { bkashFields.style.display="none"; nagadFields.style.display="none"; }
+  if(paymentMethod.value==="Bkash"){
+    bkashFields.style.display="block";
+    nagadFields.style.display="none";
+  } else if(paymentMethod.value==="Nagad"){
+    nagadFields.style.display="block";
+    bkashFields.style.display="none";
+  } else {
+    bkashFields.style.display="none";
+    nagadFields.style.display="none";
+  }
 });
 
-/* ---- Save Order to Firebase ---- */
+// Order Submit
 document.getElementById("orderForm").addEventListener("submit",e=>{
   e.preventDefault();
   const newOrder={
@@ -183,27 +190,20 @@ document.getElementById("orderForm").addEventListener("submit",e=>{
     trnx:paymentMethod.value==="Bkash"?document.getElementById("trnxIDBkash").value:document.getElementById("trnxIDNagad").value,
     date:new Date().toLocaleString()
   };
-  firebase.database().ref("orders").push(newOrder).then(()=>{
-    alert("Order Submitted!");
-    printInvoice(newOrder);
-    e.target.reset();
-    closeModal();
-  });
+  firebase.database().ref("orders").push(newOrder);
+  alert("Order Submitted!");
+  printInvoice(newOrder);
+  e.target.reset();
+  closeModal();
 });
 
-/* ---- Print Invoice ---- */
+// Print Invoice
 function printInvoice(order){
   let w = window.open('', '', 'width=800,height=600');
   w.document.write(`
     <html>
-      <head>
-        <title>Cloud Mart Invoice</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding:20px; }
-          h2 { text-align:center; }
-          p { margin:5px 0; }
-          hr { margin:15px 0; }
-        </style>
+      <head><title>Cloud Mart Invoice</title>
+      <style>body { font-family: Arial, sans-serif; padding:20px; } h2 { text-align:center; } p { margin:5px 0; } hr { margin:15px 0; }</style>
       </head>
       <body>
         <h2>Cloud Mart Invoice</h2>
@@ -216,8 +216,7 @@ function printInvoice(order){
         <p><b>Payment:</b> ${order.payment}</p>
         <p><b>Send Number:</b> ${order.sendNumber}</p>
         <p><b>Transaction ID:</b> ${order.trnx}</p>
-        <hr>
-        <p style="text-align:center;">✅ Thank you for your purchase!</p>
+        <hr><p style="text-align:center;">✅ Thank you for your purchase!</p>
       </body>
     </html>
   `);
@@ -225,7 +224,6 @@ function printInvoice(order){
   w.print();
 }
 
-/* ---- Filter Events ---- */
 search.addEventListener("input",renderProducts);
 categoryFilter.addEventListener("change",renderProducts);
 </script>
