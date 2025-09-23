@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cloud Mart</title>
+<title>Cloud Mart - User</title>
 <style>
-/* আপনার CSS কোড একই রাখা হলো */
 body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0;}
 header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-header .logo { height: 40px; width: auto; border-radius:8px;}
+header .logo { height:40px; width:auto; border-radius:8px;}
 .container { padding:20px;}
 .search-bar { margin-bottom:20px;}
 input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px;}
@@ -24,6 +23,11 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 @keyframes fadeIn { from {opacity:0; transform:translateY(-20px);} to {opacity:1; transform:translateY(0);} }
 .close { float:right; cursor:pointer; font-weight:bold;}
 #bkashFields, #nagadFields { display:none;}
+/* Completed Orders Section */
+.completed { margin-top:40px; }
+.completed table { width:100%; border-collapse:collapse; margin-top:10px; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+.completed th, .completed td { border:1px solid #ddd; padding:10px; text-align:center; font-size:14px;}
+.completed th { background:#007bff; color:#fff;}
 </style>
 </head>
 <body>
@@ -34,20 +38,40 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 </header>
 
 <div class="container">
+  <!-- Search & Filter -->
   <div class="search-bar">
     <input type="text" id="search" placeholder="Search product...">
     <select id="categoryFilter"></select>
   </div>
+  
+  <!-- Product Grid -->
   <div class="product-grid" id="productGrid"></div>
+
+  <!-- Completed Orders -->
+  <div class="completed">
+    <h2>✅ Your Completed Orders</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Payment</th>
+          <th>Trnx ID</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="completedList"></tbody>
+    </table>
+  </div>
 </div>
 
+<!-- Order Modal -->
 <div class="modal" id="orderModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal()">&times;</span>
     <h3>Order Product</h3>
     <form id="orderForm">
       <input type="text" id="orderProduct" readonly><br>
-      <input id="orderDescription" readonly ><br>
+      <input id="orderDescription" readonly><br>
       <input type="text" id="userName" placeholder="Your Name" required><br>
       <input type="email" id="userEmail" placeholder="Email" required><br>
       <input type="tel" id="userPhone" placeholder="Phone Number" required><br>
@@ -73,7 +97,7 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 </div>
 
 <script type="module">
-// ===== Firebase Setup =====
+/* ===== Firebase Setup ===== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
@@ -90,7 +114,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ===== DOM Elements =====
+/* ===== DOM Elements ===== */
 const productGrid=document.getElementById("productGrid");
 const search=document.getElementById("search");
 const categoryFilter=document.getElementById("categoryFilter");
@@ -102,38 +126,33 @@ const bkashFields=document.getElementById("bkashFields");
 const nagadFields=document.getElementById("nagadFields");
 const adminBkashNum=document.getElementById("adminBkashNum");
 const adminNagadNum=document.getElementById("adminNagadNum");
+const completedList=document.getElementById("completedList");
 
 let products=[];
 
-// ===== Load Products Realtime =====
+/* ===== Load Products ===== */
 onValue(ref(db,"products"),snapshot=>{
   products=[];
   if(snapshot.exists()){
-    snapshot.forEach(child=>{
-      products.push(child.val());
-    });
+    snapshot.forEach(child=>products.push(child.val()));
   }
   renderCategories();
   renderProducts();
 });
 
-// ===== Load Payment Numbers =====
-onValue(ref(db,"settings/bkashNumber"),snap=>{
-  adminBkashNum.textContent=snap.val()||"";
-});
-onValue(ref(db,"settings/nagadNumber"),snap=>{
-  adminNagadNum.textContent=snap.val()||"";
+/* ===== Load Payment Numbers ===== */
+onValue(ref(db,"payment"),snap=>{
+  const d=snap.val()||{};
+  adminBkashNum.textContent=d.bkash||"";
+  adminNagadNum.textContent=d.nagad||"";
 });
 
-// ===== Render Functions =====
+/* ===== Render Functions ===== */
 function renderCategories(){
   let cats=[...new Set(products.map(p=>p.category))];
   categoryFilter.innerHTML=`<option value="">All Categories</option>`;
-  cats.forEach(c=>{
-    categoryFilter.innerHTML+=`<option value="${c}">${c}</option>`;
-  });
+  cats.forEach(c=>categoryFilter.innerHTML+=`<option value="${c}">${c}</option>`);
 }
-
 function renderProducts(){
   let term=search.value.toLowerCase();
   let cat=categoryFilter.value;
@@ -154,7 +173,7 @@ function renderProducts(){
     });
 }
 
-// ===== Modal Functions =====
+/* ===== Modal Functions ===== */
 window.openModal=function(name,desc){
   orderProduct.value=name;
   orderDescription.value=desc;
@@ -164,25 +183,15 @@ window.openModal=function(name,desc){
   paymentMethod.value="";
 }
 window.closeModal=function(){ orderModal.classList.remove("show"); }
-
 paymentMethod.addEventListener("change",()=>{
-  if(paymentMethod.value==="Bkash"){
-    bkashFields.style.display="block"; nagadFields.style.display="none";
-  } else if(paymentMethod.value==="Nagad"){
-    nagadFields.style.display="block"; bkashFields.style.display="none";
-  } else {
-    bkashFields.style.display="none"; nagadFields.style.display="none";
-  }
+  bkashFields.style.display=paymentMethod.value==="Bkash"?"block":"none";
+  nagadFields.style.display=paymentMethod.value==="Nagad"?"block":"none";
 });
 
-// ===== Invoice Print =====
+/* ===== Invoice Print ===== */
 function printInvoice(order){
   let w=window.open('', '', 'width=800,height=600');
-  w.document.write(`
-    <html><head><title>Cloud Mart Invoice</title>
-    <style>body{font-family:Arial;padding:20px;}h2{text-align:center;}p{margin:5px 0;}hr{margin:15px 0;}</style>
-    </head><body>
-    <h2>Cloud Mart Invoice</h2>
+  w.document.write(`<h2>Cloud Mart Invoice</h2>
     <p><b>Date:</b> ${order.date}</p>
     <p><b>Name:</b> ${order.name}</p>
     <p><b>Email:</b> ${order.email}</p>
@@ -192,13 +201,11 @@ function printInvoice(order){
     <p><b>Payment:</b> ${order.payment}</p>
     <p><b>Send Number:</b> ${order.sendNumber}</p>
     <p><b>Transaction ID:</b> ${order.trnx}</p>
-    <hr><p style="text-align:center;">✅ Thank you for your purchase!</p>
-    </body></html>
-  `);
+    <hr><p>✅ Thank you for your purchase!</p>`);
   w.document.close(); w.print();
 }
 
-// ===== Order Submit =====
+/* ===== Order Submit ===== */
 document.getElementById("orderForm").addEventListener("submit",e=>{
   e.preventDefault();
   const newOrder={
@@ -221,7 +228,24 @@ document.getElementById("orderForm").addEventListener("submit",e=>{
   });
 });
 
-// ===== Events =====
+/* ===== Show Completed Orders ===== */
+onValue(ref(db,"completedOrders"),snap=>{
+  completedList.innerHTML="";
+  if(snap.exists()){
+    snap.forEach(child=>{
+      const o=child.val();
+      let tr=document.createElement("tr");
+      tr.innerHTML=`
+        <td>${o.product}</td>
+        <td>${o.payment}</td>
+        <td>${o.trnx}</td>
+        <td>${o.date}</td>`;
+      completedList.appendChild(tr);
+    });
+  }
+});
+
+/* ===== Events ===== */
 search.addEventListener("input",renderProducts);
 categoryFilter.addEventListener("change",renderProducts);
 </script>
