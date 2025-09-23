@@ -4,44 +4,36 @@
 <meta charset="UTF-8">
 <title>Cloud Mart</title>
 <style>
-body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0; }
-header { background:#fff; padding:15px; text-align:center; font-size:22px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center; }
-header .logo { height: 40px; border-radius:8px; }
-.container { padding:20px; }
-.search-bar { margin-bottom:20px; }
-input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px; }
-.product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
-.card { background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); text-align:center; opacity:0; transform:translateY(20px); transition:0.5s; }
-.card.show { opacity:1; transform:translateY(0); }
-.card img { width:100%; height:140px; object-fit:cover; border-radius:8px; transition:0.3s; }
-.card:hover img { transform:scale(1.05); }
-.card button { background:#007bff; color:#fff; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; transition:0.3s; }
-.card button:hover { background:#0056b3; }
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; opacity:0; transition:0.3s; }
-.modal.show { display:flex; opacity:1; }
-.modal-content { background:#fff; padding:20px; border-radius:10px; width:350px; max-height:90vh; overflow:auto; animation:fadeIn 0.5s; }
-@keyframes fadeIn { from{opacity:0; transform:translateY(-20px);} to{opacity:1; transform:translateY(0);} }
-.close { float:right; cursor:pointer; font-weight:bold; font-size:20px; }
-#bkashFields, #nagadFields { display:none; }
-table { width:100%; border-collapse:collapse; margin-top:10px; background:#fff; border-radius:8px; overflow:hidden; }
-th, td { border:1px solid #ddd; padding:8px; text-align:center; }
-th { background:#007bff; color:#fff; }
-#myOrdersBtn { background:#28a745; color:#fff; border:none; padding:10px 15px; border-radius:5px; cursor:pointer; }
-#myOrdersBtn:hover { background:#218838; }
+/* আপনার CSS কোড একই রাখা হলো */
+body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0;}
+header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+header .logo { height: 40px; width: auto; border-radius:8px;}
+.container { padding:20px;}
+.search-bar { margin-bottom:20px;}
+input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px;}
+.product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px;}
+.card { background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); text-align:center; opacity:0; transform:translateY(20px); transition:0.5s;}
+.card.show { opacity:1; transform:translateY(0);}
+.card img { width:100%; height:140px; object-fit:cover; border-radius:8px; transition:0.3s;}
+.card:hover img { transform:scale(1.05);}
+.card button { background:#007bff; color:#fff; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; transition:0.3s;}
+.card button:hover { background:#0056b3;}
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; opacity:0; transition:0.3s;}
+.modal.show { display:flex; opacity:1;}
+.modal-content { background:#fff; padding:20px; border-radius:10px; width:320px; animation:fadeIn 0.5s;}
+@keyframes fadeIn { from {opacity:0; transform:translateY(-20px);} to {opacity:1; transform:translateY(0);} }
+.close { float:right; cursor:pointer; font-weight:bold;}
+#bkashFields, #nagadFields { display:none;}
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <img src="logo.png" alt="Cloud Mart logo" class="logo">
-    <span> Cloud Mart</span>
-  </div>
-  <button id="myOrdersBtn">📦 My Orders</button>
+  <img src="logo.png" alt="Cloud Mart logo" class="logo">
+  <span>Cloud Mart</span>
 </header>
 
 <div class="container">
-  <h2>Products</h2>
   <div class="search-bar">
     <input type="text" id="search" placeholder="Search product...">
     <select id="categoryFilter"></select>
@@ -49,10 +41,9 @@ th { background:#007bff; color:#fff; }
   <div class="product-grid" id="productGrid"></div>
 </div>
 
-<!-- Order Modal -->
 <div class="modal" id="orderModal">
   <div class="modal-content">
-    <span class="close" onclick="closeModal('orderModal')">&times;</span>
+    <span class="close" onclick="closeModal()">&times;</span>
     <h3>Order Product</h3>
     <form id="orderForm">
       <input type="text" id="orderProduct" readonly><br>
@@ -76,33 +67,15 @@ th { background:#007bff; color:#fff; }
         <input type="text" id="trnxIDNagad" placeholder="Transaction ID"><br>
       </div>
       <button type="submit">Submit Order</button>
-      <button type="button" onclick="closeModal('orderModal')">Cancel</button>
+      <button type="button" onclick="closeModal()">Cancel</button>
     </form>
   </div>
 </div>
 
-<!-- My Orders Modal -->
-<div class="modal" id="myOrdersModal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal('myOrdersModal')">&times;</span>
-    <h3>📦 My Orders</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Product</th>
-          <th>Payment</th>
-          <th>Date</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="orderList"></tbody>
-    </table>
-  </div>
-</div>
-
 <script type="module">
+// ===== Firebase Setup =====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getDatabase, ref, onValue, push, remove, get, child } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCl9ENd3XOP1KeutD7s1zSiXYSuz4VIqGU",
@@ -114,13 +87,14 @@ const firebaseConfig = {
   appId: "1:656495467691:web:fe021039a257495ce12bee",
   measurementId: "G-NG0SHK0SGM"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// ===== DOM Elements =====
 const productGrid=document.getElementById("productGrid");
 const search=document.getElementById("search");
 const categoryFilter=document.getElementById("categoryFilter");
+const orderModal=document.getElementById("orderModal");
 const orderProduct=document.getElementById("orderProduct");
 const orderDescription=document.getElementById("orderDescription");
 const paymentMethod=document.getElementById("paymentMethod");
@@ -128,32 +102,30 @@ const bkashFields=document.getElementById("bkashFields");
 const nagadFields=document.getElementById("nagadFields");
 const adminBkashNum=document.getElementById("adminBkashNum");
 const adminNagadNum=document.getElementById("adminNagadNum");
-const orderList=document.getElementById("orderList");
-const myOrdersBtn=document.getElementById("myOrdersBtn");
 
-let products=[]; 
+let products=[];
 
-// Load payment numbers
-onValue(ref(db,"payment"), snap=>{
-  if(snap.exists()){
-    const data=snap.val();
-    adminBkashNum.textContent=data.bkash||"";
-    adminNagadNum.textContent=data.nagad||"";
-  }
-});
-
-// Load products
-onValue(ref(db,"products"), snap=>{
+// ===== Load Products Realtime =====
+onValue(ref(db,"products"),snapshot=>{
   products=[];
-  if(snap.exists()){
-    snap.forEach(child=>{
-      products.push({id:child.key,...child.val()});
+  if(snapshot.exists()){
+    snapshot.forEach(child=>{
+      products.push(child.val());
     });
   }
   renderCategories();
   renderProducts();
 });
 
+// ===== Load Payment Numbers =====
+onValue(ref(db,"settings/bkashNumber"),snap=>{
+  adminBkashNum.textContent=snap.val()||"";
+});
+onValue(ref(db,"settings/nagadNumber"),snap=>{
+  adminNagadNum.textContent=snap.val()||"";
+});
+
+// ===== Render Functions =====
 function renderCategories(){
   let cats=[...new Set(products.map(p=>p.category))];
   categoryFilter.innerHTML=`<option value="">All Categories</option>`;
@@ -176,26 +148,32 @@ function renderProducts(){
         <p>${p.category}</p>
         <p>${p.description}</p>
         <p><b>$${p.price}</b></p>
-        <button onclick="openModal('orderModal','${p.name}','${p.description.replace(/'/g,"&#39;")}')">Order</button>`;
+        <button onclick="openModal('${p.name}','${p.description.replace(/'/g,"&#39;")}')">Order</button>`;
       productGrid.appendChild(card);
       setTimeout(()=>card.classList.add("show"),100*i);
     });
 }
 
-window.openModal=function(id,name="",desc=""){
-  if(id==="orderModal"){
-    orderProduct.value=name;
-    orderDescription.value=desc;
-  }
-  document.getElementById(id).classList.add("show");
+// ===== Modal Functions =====
+window.openModal=function(name,desc){
+  orderProduct.value=name;
+  orderDescription.value=desc;
+  orderModal.classList.add("show");
+  bkashFields.style.display="none";
+  nagadFields.style.display="none";
+  paymentMethod.value="";
 }
-window.closeModal=function(id){ document.getElementById(id).classList.remove("show"); }
+window.closeModal=function(){ orderModal.classList.remove("show"); }
 
 paymentMethod.addEventListener("change",()=>{
-  bkashFields.style.display = paymentMethod.value==="Bkash"?"block":"none";
-  nagadFields.style.display = paymentMethod.value==="Nagad"?"block":"none";
+  if(paymentMethod.value==="Bkash"){
+    bkashFields.style.display="block"; nagadFields.style.display="none";
+  } else if(paymentMethod.value==="Nagad"){
+    nagadFields.style.display="block"; bkashFields.style.display="none";
+  } else {
+    bkashFields.style.display="none"; nagadFields.style.display="none";
+  }
 });
-
 
 // ===== Invoice Print =====
 function printInvoice(order){
@@ -220,9 +198,8 @@ function printInvoice(order){
   w.document.close(); w.print();
 }
 
-
-// Submit order
-document.getElementById("orderForm").addEventListener("submit",async e=>{
+// ===== Order Submit =====
+document.getElementById("orderForm").addEventListener("submit",e=>{
   e.preventDefault();
   const newOrder={
     product:orderProduct.value,
@@ -231,56 +208,20 @@ document.getElementById("orderForm").addEventListener("submit",async e=>{
     email:document.getElementById("userEmail").value,
     phone:document.getElementById("userPhone").value,
     payment:paymentMethod.value,
-    sendNumber:paymentMethod.value==="Bkash"?document.getElementById("sendNumberBkash").value:
-                 document.getElementById("sendNumberNagad").value,
-    trnx:paymentMethod.value==="Bkash"?document.getElementById("trnxIDBkash").value:
-          document.getElementById("trnxIDNagad").value,
-    date:new Date().toLocaleString(),
-    status:"pending"
+    sendNumber:paymentMethod.value==="Bkash"?document.getElementById("sendNumberBkash").value:document.getElementById("sendNumberNagad").value,
+    trnx:paymentMethod.value==="Bkash"?document.getElementById("trnxIDBkash").value:document.getElementById("trnxIDNagad").value,
+    date:new Date().toLocaleString()
   };
-  await push(ref(db,"orders"),newOrder);
-  alert("Order Submitted!");
-  e.target.reset();
-  closeModal("orderModal");
-});
-
-// Auto delete old orders (keep only last 5)
-async function enforceOrderLimit(){
-  const snapshot=await get(ref(db,"orders"));
-  if(snapshot.exists()){
-    let orders=[];
-    snapshot.forEach(child=>{
-      orders.push({key:child.key,...child.val()});
-    });
-    if(orders.length>5){
-      let toDelete=orders.slice(0,orders.length-5); 
-      toDelete.forEach(o=>remove(ref(db,"orders/"+o.key)));
-    }
-  }
-}
-
-// Load orders realtime
-onValue(ref(db,"orders"), snap=>{
-  orderList.innerHTML="";
-  let orders=[];
-  if(snap.exists()){
-    snap.forEach(child=>orders.push({key:child.key,...child.val()}));
-  }
-  orders.slice(-5).forEach(o=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${o.product}</td>
-      <td>${o.payment}</td>
-      <td>${o.date}</td>
-      <td style="color:${o.status==="success"?"green":o.status==="failed"?"red":"orange"}">${o.status}</td>`;
-    orderList.appendChild(tr);
+  const orderRef=push(ref(db,"orders"));
+  set(orderRef,newOrder).then(()=>{
+    alert("Order Submitted!");
+    printInvoice(newOrder);
+    e.target.reset();
+    closeModal();
   });
-  enforceOrderLimit();
 });
 
-// My Orders button
-myOrdersBtn.addEventListener("click",()=>openModal("myOrdersModal"));
-
+// ===== Events =====
 search.addEventListener("input",renderProducts);
 categoryFilter.addEventListener("change",renderProducts);
 </script>
