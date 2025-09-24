@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Cloud Mart - User</title>
 <style>
+/* ==== আগের আপনার স্টাইল অপরিবর্তিত রাখা হলো ==== */
 body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0;}
 header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1); position:relative;}
 header .logo { height:40px; width:auto; border-radius:8px;}
@@ -127,6 +128,9 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
   </div>
 </div>
 
+<!-- EmailJS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
@@ -149,7 +153,6 @@ const db = getDatabase(app);
 const productGrid=document.getElementById("productGrid");
 const search=document.getElementById("search");
 const categoryFilter=document.getElementById("categoryFilter");
-const orderModal=document.getElementById("orderModal");
 const orderProduct=document.getElementById("orderProduct");
 const orderDescription=document.getElementById("orderDescription");
 const paymentMethod=document.getElementById("paymentMethod");
@@ -235,11 +238,11 @@ function printInvoice(order){
   w.document.close(); w.print();
 }
 
-/* ===== WhatsApp Notification Function ===== */
+/* ===== WhatsApp Notification (Optional) ===== */
 function sendWhatsAppNotification(order){
   const apiKey = "qtDOzuTYspnEphUFztxzpKSlzJ6ukqrc";
   const apiUrl = "https://gate.whapi.cloud/messages/text";
-  const phoneNumber = "8801689380185"; // Admin / Owner phone
+  const phoneNumber = "8801689380185"; // আপনার নাম্বার
 
   fetch(apiUrl,{
     method:"POST",
@@ -258,9 +261,67 @@ Trnx ID: ${order.trnx}
 Date: ${order.date}`
     })
   })
-  .then(res=>res.json())
-  .then(data=>console.log("WhatsApp Message Sent:",data))
   .catch(err=>console.error("WhatsApp Error:",err));
+}
+
+/* ===== Email Notification (EmailJS) ===== */
+(function(){
+  emailjs.init("YOUR_EMAILJS_USER_ID"); // EmailJS থেকে নেবেন
+})();
+function sendEmailNotification(order){
+  emailjs.send("service_98srh9u","template_wbwbxo4",{
+    product: order.product,
+    name: order.name,
+    phone: order.phone,
+    payment: order.payment,
+    trnx: order.trnx,
+    date: order.date
+  }).then(res=>{
+    console.log("Email Sent!", res);
+  }).catch(err=>{
+    console.error("Email Error:", err);
+  });
+}
+
+/* ===== Telegram Notification ===== */
+function sendTelegramNotification(order){
+  const token = "YOUR_TELEGRAM_BOT_TOKEN";
+  const chatId = "YOUR_CHAT_ID";
+  const message = `📢 New Order!\n
+Product: ${order.product}
+Name: ${order.name}
+Phone: ${order.phone}
+Payment: ${order.payment}
+Trnx: ${order.trnx}
+Date: ${order.date}`;
+
+  fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ chat_id: chatId, text: message })
+  })
+  .then(res=>res.json())
+  .then(data=>console.log("Telegram Sent!", data))
+  .catch(err=>console.error("Telegram Error:", err));
+}
+
+/* ===== Push Notification (Browser) ===== */
+function sendPushNotification(order){
+  if(Notification.permission === "granted"){
+    new Notification("📦 New Order Received",{
+      body: `Product: ${order.product}\nCustomer: ${order.name}\nPhone: ${order.phone}`,
+      icon: "logo.png"
+    });
+  } else if(Notification.permission !== "denied"){
+    Notification.requestPermission().then(permission=>{
+      if(permission === "granted"){
+        new Notification("📦 New Order Received",{
+          body: `Product: ${order.product}\nCustomer: ${order.name}`,
+          icon: "logo.png"
+        });
+      }
+    });
+  }
 }
 
 /* ===== Order Submit ===== */
@@ -282,8 +343,11 @@ document.getElementById("orderForm").addEventListener("submit",e=>{
     alert("Order Submitted!");
     printInvoice(newOrder);
 
-    // WhatsApp notification
-    sendWhatsAppNotification(newOrder);
+    // 🔔 Notifications
+    sendWhatsAppNotification(newOrder);   // Optional (Paid)
+    sendEmailNotification(newOrder);      // Free (EmailJS)
+    sendTelegramNotification(newOrder);   // Free
+    sendPushNotification(newOrder);       // Free (Browser)
 
     e.target.reset();
     closeModal();
@@ -316,7 +380,6 @@ categoryFilter.addEventListener("change",renderProducts);
 const orderPanel=document.getElementById("orderStatusPanel");
 document.getElementById("orderStatusBtn").addEventListener("click",()=>{ orderPanel.classList.add("show"); });
 document.getElementById("closeOrderPanel").addEventListener("click",()=>{ orderPanel.classList.remove("show"); });
-
 </script>
 </body>
 </html>
