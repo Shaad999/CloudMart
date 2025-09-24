@@ -4,100 +4,33 @@
 <meta charset="UTF-8">
 <title>Cloud Mart - User</title>
 <style>
-body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0;}
-header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-header .logo { height:40px; width:auto; border-radius:8px;}
-.container { padding:20px;}
-.search-bar { margin-bottom:20px;}
-input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; border-radius:5px;}
-.product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px;}
-.card { background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); text-align:center; opacity:0; transform:translateY(20px); transition:0.5s;}
-.card.show { opacity:1; transform:translateY(0);}
-.card img { width:100%; height:140px; object-fit:cover; border-radius:8px; transition:0.3s;}
-.card:hover img { transform:scale(1.05);}
-.card button { background:#007bff; color:#fff; border:none; padding:10px; width:100%; border-radius:5px; cursor:pointer; transition:0.3s;}
-.card button:hover { background:#0056b3;}
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; opacity:0; transition:0.3s;}
-.modal.show { display:flex; opacity:1;}
-.modal-content { background:#fff; padding:20px; border-radius:10px; width:320px; animation:fadeIn 0.5s;}
-@keyframes fadeIn { from {opacity:0; transform:translateY(-20px);} to {opacity:1; transform:translateY(0);} }
-.close { float:right; cursor:pointer; font-weight:bold;}
-#bkashFields, #nagadFields { display:none;}
+body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0; }
+header { background:#fff; padding:15px; text-align:center; font-size:22px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+.container { padding:20px; }
+.products { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; }
+.card { background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1); text-align:center; transition:.3s; }
+.card:hover { transform:translateY(-5px); }
+.card img { width:100%; height:150px; object-fit:cover; border-radius:8px; }
+.card button { margin-top:10px; padding:10px 15px; border:none; border-radius:8px; background:#333; color:#fff; cursor:pointer; }
+.card button:hover { background:#555; }
 
-/* ===== Slide Order Status Panel ===== */
-#orderStatusPanel {
-  position: fixed;
-  top: 0;
-  right: -400px;
-  width: 350px;
-  height: 100%;
-  background: #fff;
-  box-shadow: -2px 0 10px rgba(0,0,0,0.2);
-  transition: right 0.4s ease;
-  z-index: 1000;
-  padding: 20px;
-  overflow-y: auto;
-}
-#orderStatusPanel.active {
-  right: 0;
-}
-#orderStatusBtn {
-  position: fixed;
-  top: 100px;
-  right: 20px;
-  z-index: 1100;
-  background:#007bff;
-  color:#fff;
-  padding:12px 20px;
-  border:none;
-  border-radius:30px;
-  cursor:pointer;
-  font-size:14px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.2);
-}
-#orderStatusBtn:hover { background:#0056b3; }
+/* Order Modal */
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); }
+.modal-content { background:#fff; margin:5% auto; padding:20px; border-radius:10px; width:90%; max-width:400px; position:relative; }
+.close { position:absolute; right:15px; top:10px; cursor:pointer; font-size:22px; }
 
-#orderStatusPanel h2 { font-size:18px; margin-bottom:10px; text-align:center; }
-#orderStatusPanel table { width:100%; border-collapse:collapse; font-size:13px;}
-#orderStatusPanel th, #orderStatusPanel td { border:1px solid #ddd; padding:6px; text-align:center;}
-#orderStatusPanel th { background:#007bff; color:#fff; }
+.modal-content input, .modal-content select, .modal-content button { 
+  width:100%; margin:8px 0; padding:10px; border:1px solid #ccc; border-radius:8px; 
+}
+
+#bkashFields, #nagadFields { background:#f9f9f9; padding:10px; border-radius:8px; margin-top:10px; }
 </style>
 </head>
 <body>
-
-<header>
-  <img src="logo.png" alt="Cloud Mart logo" class="logo">
-  <span>Cloud Mart</span>
-</header>
-
+<header>Cloud Mart - User Panel</header>
 <div class="container">
-  <!-- Search & Filter -->
-  <div class="search-bar">
-    <input type="text" id="search" placeholder="Search product...">
-    <select id="categoryFilter"></select>
-  </div>
-  
-  <!-- Product Grid -->
-  <div class="product-grid" id="productGrid"></div>
-</div>
-
-<!-- Slide Order Status Button -->
-<button id="orderStatusBtn">📦 Order Status</button>
-
-<!-- Slide Order Status Panel -->
-<div id="orderStatusPanel">
-  <h2>✅ Your Completed Orders</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Payment</th>
-        <th>Trnx ID</th>
-        <th>Date</th>
-      </tr>
-    </thead>
-    <tbody id="completedList"></tbody>
-  </table>
+  <h2>Available Products</h2>
+  <div class="products" id="productsList"></div>
 </div>
 
 <!-- Order Modal -->
@@ -111,21 +44,28 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
       <input type="text" id="userName" placeholder="Your Name" required><br>
       <input type="email" id="userEmail" placeholder="Email" required><br>
       <input type="tel" id="userPhone" placeholder="Phone Number" required><br>
+      
+      <!-- Payment Method -->
       <select id="paymentMethod" required>
         <option value="">Select Payment</option>
         <option value="Bkash">Bkash</option>
         <option value="Nagad">Nagad</option>
       </select><br>
-      <div id="bkashFields">
-        <p>Bkash Number: <span id="adminBkashNum"></span></p>
+
+      <!-- Bkash Fields -->
+      <div id="bkashFields" style="display:none;">
+        <p><b>Bkash Number:</b> <span id="adminBkashNum"></span></p>
         <input type="text" id="sendNumberBkash" placeholder="Your Send Money Number"><br>
         <input type="text" id="trnxIDBkash" placeholder="Transaction ID"><br>
       </div>
-      <div id="nagadFields">
-        <p>Nagad Number: <span id="adminNagadNum"></span></p>
+
+      <!-- Nagad Fields -->
+      <div id="nagadFields" style="display:none;">
+        <p><b>Nagad Number:</b> <span id="adminNagadNum"></span></p>
         <input type="text" id="sendNumberNagad" placeholder="Your Send Money Number"><br>
         <input type="text" id="trnxIDNagad" placeholder="Transaction ID"><br>
       </div>
+
       <button type="submit">Submit Order</button>
       <button type="button" onclick="closeModal()">Cancel</button>
     </form>
@@ -133,165 +73,90 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 </div>
 
 <script type="module">
-/* ===== Firebase Setup ===== */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+/* Firebase Config */
 const firebaseConfig = {
-  apiKey: "AIzaSyCl9ENd3XOP1KeutD7s1zSiXYSuz4VIqGU",
-  authDomain: "cloud-mart01.firebaseapp.com",
-  databaseURL: "https://cloud-mart01-default-rtdb.firebaseio.com",
-  projectId: "cloud-mart01",
-  storageBucket: "cloud-mart01.firebasestorage.app",
-  messagingSenderId: "656495467691",
-  appId: "1:656495467691:web:fe021039a257495ce12bee",
-  measurementId: "G-NG0SHK0SGM"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* ===== DOM Elements ===== */
-const productGrid=document.getElementById("productGrid");
-const search=document.getElementById("search");
-const categoryFilter=document.getElementById("categoryFilter");
-const orderModal=document.getElementById("orderModal");
-const orderProduct=document.getElementById("orderProduct");
-const orderDescription=document.getElementById("orderDescription");
-const paymentMethod=document.getElementById("paymentMethod");
-const bkashFields=document.getElementById("bkashFields");
-const nagadFields=document.getElementById("nagadFields");
-const adminBkashNum=document.getElementById("adminBkashNum");
-const adminNagadNum=document.getElementById("adminNagadNum");
-const completedList=document.getElementById("completedList");
-const orderStatusBtn=document.getElementById("orderStatusBtn");
-const orderStatusPanel=document.getElementById("orderStatusPanel");
-
-let products=[];
-
-/* ===== Load Products ===== */
+/* Load Products */
+const productsList=document.getElementById("productsList");
 onValue(ref(db,"products"),snapshot=>{
-  products=[];
-  if(snapshot.exists()){
-    snapshot.forEach(child=>products.push(child.val()));
-  }
-  renderCategories();
-  renderProducts();
+  productsList.innerHTML="";
+  snapshot.forEach(item=>{
+    const data=item.val();
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`
+      <img src="${data.image}" alt="${data.name}">
+      <h3>${data.name}</h3>
+      <p>${data.description}</p>
+      <p><b>Price:</b> ${data.price}৳</p>
+      <button onclick="openModal('${data.name}','${data.description}')">Order Now</button>
+    `;
+    productsList.appendChild(div);
+  });
 });
 
-/* ===== Load Payment Numbers ===== */
-onValue(ref(db,"payment"),snap=>{
-  const d=snap.val()||{};
-  adminBkashNum.textContent=d.bkash||"";
-  adminNagadNum.textContent=d.nagad||"";
+/* Load Payment Numbers */
+onValue(ref(db,"payment"),snapshot=>{
+  const data=snapshot.val()||{};
+  document.getElementById("adminBkashNum").textContent=data.bkash||"Not Set";
+  document.getElementById("adminNagadNum").textContent=data.nagad||"Not Set";
 });
 
-/* ===== Render Functions ===== */
-function renderCategories(){
-  let cats=[...new Set(products.map(p=>p.category))];
-  categoryFilter.innerHTML=`<option value="">All Categories</option>`;
-  cats.forEach(c=>categoryFilter.innerHTML+=`<option value="${c}">${c}</option>`);
-}
-function renderProducts(){
-  let term=search.value.toLowerCase();
-  let cat=categoryFilter.value;
-  productGrid.innerHTML="";
-  products.filter(p=>(!cat||p.category===cat)&&p.name.toLowerCase().includes(term))
-    .forEach((p,i)=>{
-      let card=document.createElement("div");
-      card.className="card";
-      card.innerHTML=`
-        <img src="${p.image||'https://via.placeholder.com/200'}">
-        <h4>${p.name}</h4>
-        <p>${p.category}</p>
-        <p>${p.description}</p>
-        <p><b>$${p.price}</b></p>
-        <button onclick="openModal('${p.name}','${p.description.replace(/'/g,"&#39;")}')">Order</button>`;
-      productGrid.appendChild(card);
-      setTimeout(()=>card.classList.add("show"),100*i);
-    });
-}
+/* Open Modal */
+window.openModal=(name,desc)=>{
+  document.getElementById("orderProduct").value=name;
+  document.getElementById("orderDescription").value=desc;
+  document.getElementById("orderModal").style.display="block";
+};
+window.closeModal=()=>{ document.getElementById("orderModal").style.display="none"; };
 
-/* ===== Modal Functions ===== */
-window.openModal=function(name,desc){
-  orderProduct.value=name;
-  orderDescription.value=desc;
-  orderModal.classList.add("show");
-  bkashFields.style.display="none";
-  nagadFields.style.display="none";
-  paymentMethod.value="";
-}
-window.closeModal=function(){ orderModal.classList.remove("show"); }
-paymentMethod.addEventListener("change",()=>{
-  bkashFields.style.display=paymentMethod.value==="Bkash"?"block":"none";
-  nagadFields.style.display=paymentMethod.value==="Nagad"?"block":"none";
+/* Payment Toggle */
+document.getElementById("paymentMethod").addEventListener("change",()=>{
+  const method=document.getElementById("paymentMethod").value;
+  document.getElementById("bkashFields").style.display= method==="Bkash" ? "block":"none";
+  document.getElementById("nagadFields").style.display= method==="Nagad" ? "block":"none";
 });
 
-/* ===== Invoice Print ===== */
-function printInvoice(order){
-  let w=window.open('', '', 'width=800,height=600');
-  w.document.write(`<h2>Cloud Mart Invoice</h2>
-    <p><b>Date:</b> ${order.date}</p>
-    <p><b>Name:</b> ${order.name}</p>
-    <p><b>Email:</b> ${order.email}</p>
-    <p><b>Phone:</b> ${order.phone}</p>
-    <p><b>Product:</b> ${order.product}</p>
-    <p><b>Description:</b> ${order.description}</p>
-    <p><b>Payment:</b> ${order.payment}</p>
-    <p><b>Send Number:</b> ${order.sendNumber}</p>
-    <p><b>Transaction ID:</b> ${order.trnx}</p>
-    <hr><p>✅ Thank you for your purchase!</p>`);
-  w.document.close(); w.print();
-}
-
-/* ===== Order Submit ===== */
+/* Order Submit */
 document.getElementById("orderForm").addEventListener("submit",e=>{
   e.preventDefault();
+  const method=document.getElementById("paymentMethod").value;
   const newOrder={
-    product:orderProduct.value,
-    description:orderDescription.value,
+    product:document.getElementById("orderProduct").value,
+    description:document.getElementById("orderDescription").value,
     name:document.getElementById("userName").value,
     email:document.getElementById("userEmail").value,
     phone:document.getElementById("userPhone").value,
-    payment:paymentMethod.value,
-    sendNumber:paymentMethod.value==="Bkash"?document.getElementById("sendNumberBkash").value:document.getElementById("sendNumberNagad").value,
-    trnx:paymentMethod.value==="Bkash"?document.getElementById("trnxIDBkash").value:document.getElementById("trnxIDNagad").value,
+    payment:method,
+    sendNumber: method==="Bkash"
+      ? document.getElementById("sendNumberBkash").value
+      : document.getElementById("sendNumberNagad").value,
+    trnx: method==="Bkash"
+      ? document.getElementById("trnxIDBkash").value
+      : document.getElementById("trnxIDNagad").value,
     date:new Date().toLocaleString()
   };
+
   const orderRef=push(ref(db,"orders"));
   set(orderRef,newOrder).then(()=>{
-    alert("Order Submitted!");
-    printInvoice(newOrder);
+    alert("✅ Order Submitted!");
     e.target.reset();
     closeModal();
   });
 });
-
-/* ===== Show Completed Orders (Max 5) ===== */
-onValue(ref(db,"completedOrders"),snap=>{
-  completedList.innerHTML="";
-  if(snap.exists()){
-    let orders=[];
-    snap.forEach(child=>orders.push(child.val()));
-    orders.slice(-5).forEach(o=>{
-      let tr=document.createElement("tr");
-      tr.innerHTML=`
-        <td>${o.product}</td>
-        <td>${o.payment}</td>
-        <td>${o.trnx}</td>
-        <td>${o.date}</td>`;
-      completedList.appendChild(tr);
-    });
-  }
-});
-
-/* ===== Toggle Slide Panel ===== */
-orderStatusBtn.addEventListener("click",()=>{
-  orderStatusPanel.classList.toggle("active");
-});
-
-/* ===== Events ===== */
-search.addEventListener("input",renderProducts);
-categoryFilter.addEventListener("change",renderProducts);
 </script>
 </body>
 </html>
