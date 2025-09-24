@@ -131,7 +131,7 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
-// ===== Firebase Config =====
+// ===== Updated Firebase Config =====
 const firebaseConfig = {
   apiKey: "AIzaSyD-UpdatedAPIKeyExample123456",
   authDomain: "cloud-mart01.firebaseapp.com",
@@ -142,6 +142,7 @@ const firebaseConfig = {
   appId: "1:656495467691:web:updatedappid123456",
   measurementId: "G-UPDATEDMEASUREID"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
@@ -235,34 +236,6 @@ function printInvoice(order){
   w.document.close(); w.print();
 }
 
-/* ===== WhatsApp Notification Function ===== */
-function sendWhatsAppNotification(order){
-  const apiKey = "qtDOzuTYspnEphUFztxzpKSlzJ6ukqrc";
-  const apiUrl = "https://gate.whapi.cloud/messages/text";
-  const phoneNumber = "8801689380185"; // Admin / Owner phone
-
-  fetch(apiUrl,{
-    method:"POST",
-    headers:{
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify({
-      to: phoneNumber,
-      body: `📦 New Order Received!\n
-Product: ${order.product}
-Name: ${order.name}
-Phone: ${order.phone}
-Payment: ${order.payment}
-Trnx ID: ${order.trnx}
-Date: ${order.date}`
-    })
-  })
-  .then(res=>res.json())
-  .then(data=>console.log("WhatsApp Message Sent:",data))
-  .catch(err=>console.error("WhatsApp Error:",err));
-}
-
 /* ===== Order Submit ===== */
 document.getElementById("orderForm").addEventListener("submit",e=>{
   e.preventDefault();
@@ -281,10 +254,6 @@ document.getElementById("orderForm").addEventListener("submit",e=>{
   set(orderRef,newOrder).then(()=>{
     alert("Order Submitted!");
     printInvoice(newOrder);
-
-    // WhatsApp notification
-    sendWhatsAppNotification(newOrder);
-
     e.target.reset();
     closeModal();
   });
