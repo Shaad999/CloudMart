@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Cloud Mart - User</title>
 <style>
+/* ==== আগের স্টাইল অপরিবর্তিত ==== */
 body { font-family: Arial, sans-serif; background:#f9f9f9; margin:0; padding:0;}
 header { background:#fff; padding:15px; text-align:center; font-size:22px; gap:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.1); position:relative;}
 header .logo { height:40px; width:auto; border-radius:8px;}
@@ -24,6 +25,7 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 .close { cursor:pointer; font-weight:bold; float:right;}
 #bkashFields, #nagadFields { display:none; }
 
+/* ===== Order Status Panel ===== */
 #orderStatusPanel {
   position:fixed; top:0; right:-400px; width:350px; height:100%;
   background:#fff; box-shadow:-2px 0 10px rgba(0,0,0,0.2);
@@ -31,10 +33,23 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
   display:flex; flex-direction:column;
 }
 #orderStatusPanel.show { right:0; }
-#orderStatusBtn { margin-left:auto; padding:8px 15px; background:#2a99f4; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:14px; transition:0.3s;}
+#orderStatusBtn {
+  margin-left:auto; padding:8px 15px;
+  background:#2a99f4; color:#fff; border:none; border-radius:6px;
+  cursor:pointer; font-size:14px;
+  transition:0.3s;
+}
 #orderStatusBtn:hover { background:#298cdc; }
-#orderPanelHeader { background:#007bff; color:#fff; padding:15px; font-size:18px; display:flex; justify-content:space-between; align-items:center; border-top-left-radius:6px; border-top-right-radius:6px;}
+
+/* Panel Header */
+#orderPanelHeader {
+  background:#007bff; color:#fff; padding:15px; font-size:18px;
+  display:flex; justify-content:space-between; align-items:center;
+  border-top-left-radius:6px; border-top-right-radius:6px;
+}
 #orderPanelHeader .closePanel { cursor:pointer; font-size:18px; font-weight:bold; }
+
+/* Completed Table */
 .completed { padding:10px; }
 .completed table { width:100%; border-collapse:collapse; margin-top:10px; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
 .completed th, .completed td { border:1px solid #ddd; padding:8px; text-align:center; font-size:13px;}
@@ -49,14 +64,18 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 </header>
 
 <div class="container">
+  <!-- Search & Filter -->
   <div class="search-bar">
     <input type="text" id="search" placeholder="Search product...">
     <select id="categoryFilter"></select>
     <button id="orderStatusBtn">📦 Order Status</button>
   </div>
+  
+  <!-- Product Grid -->
   <div class="product-grid" id="productGrid"></div>
 </div>
 
+<!-- Slide Panel for Orders -->
 <div id="orderStatusPanel">
   <div id="orderPanelHeader">
     <span>✅ Your Completed Orders</span>
@@ -77,6 +96,7 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
   </div>
 </div>
 
+<!-- Order Modal -->
 <div class="modal" id="orderModal">
   <div class="modal-content">
     <span class="close" onclick="closeModal()">&times;</span>
@@ -92,11 +112,13 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
         <option value="Bkash">Bkash</option>
         <option value="Nagad">Nagad</option>
       </select><br>
-      <div id="bkashFields"><p>Bkash Number: <span id="adminBkashNum"></span></p>
+      <div id="bkashFields">
+        <p>Bkash Number: <span id="adminBkashNum"></span></p>
         <input type="text" id="sendNumberBkash" placeholder="Your Send Money Number"><br>
         <input type="text" id="trnxIDBkash" placeholder="Transaction ID"><br>
       </div>
-      <div id="nagadFields"><p>Nagad Number: <span id="adminNagadNum"></span></p>
+      <div id="nagadFields">
+        <p>Nagad Number: <span id="adminNagadNum"></span></p>
         <input type="text" id="sendNumberNagad" placeholder="Your Send Money Number"><br>
         <input type="text" id="trnxIDNagad" placeholder="Transaction ID"><br>
       </div>
@@ -110,6 +132,7 @@ input, select, button { padding:10px; margin:5px 0; border:1px solid #ccc; borde
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getDatabase, ref, onValue, push, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
 
+// ===== Firebase Config =====
 const firebaseConfig = {
   apiKey: "AIzaSyD-UpdatedAPIKeyExample123456",
   authDomain: "cloud-mart01.firebaseapp.com",
@@ -123,6 +146,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// ===== DOM Elements =====
 const productGrid=document.getElementById("productGrid");
 const search=document.getElementById("search");
 const categoryFilter=document.getElementById("categoryFilter");
@@ -135,22 +159,25 @@ const adminBkashNum=document.getElementById("adminBkashNum");
 const adminNagadNum=document.getElementById("adminNagadNum");
 const completedList=document.getElementById("completedList");
 
-/* Load Products */
+// ===== Load Products =====
 let products=[];
 onValue(ref(db,"products"),snapshot=>{
   products=[]; productGrid.innerHTML="";
-  if(snapshot.exists()){ snapshot.forEach(child=>products.push(child.val())); }
-  renderCategories(); renderProducts();
+  if(snapshot.exists()){
+    snapshot.forEach(child=>products.push(child.val()));
+  }
+  renderCategories();
+  renderProducts();
 });
 
-/* Payment Numbers */
+// ===== Load Payment Numbers =====
 onValue(ref(db,"payment"),snap=>{
   const d=snap.val()||{};
   adminBkashNum.textContent=d.bkash||"";
   adminNagadNum.textContent=d.nagad||"";
 });
 
-/* Render Functions */
+// ===== Render Functions =====
 function renderCategories(){
   let cats=[...new Set(products.map(p=>p.category))];
   categoryFilter.innerHTML=`<option value="">All Categories</option>`;
@@ -176,7 +203,7 @@ function renderProducts(){
     });
 }
 
-/* Modal Functions */
+// ===== Modal Functions =====
 window.openModal=function(name,desc){
   orderProduct.value=name;
   orderDescription.value=desc;
@@ -191,7 +218,7 @@ paymentMethod.addEventListener("change",()=>{
   nagadFields.style.display=paymentMethod.value==="Nagad"?"block":"none";
 });
 
-/* Invoice Print */
+// ===== Invoice Print =====
 function printInvoice(order){
   let w=window.open('', '', 'width=800,height=600');
   w.document.write(`<h2>Cloud Mart Invoice</h2>
@@ -208,31 +235,48 @@ function printInvoice(order){
   w.document.close(); w.print();
 }
 
-/* SMS Notification via Server Proxy */
-function sendSMSNotification(order){
-  fetch("/sendSMS", {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-      phone: order.phone,
-      message: `📦 Cloud Mart Order Received!\nProduct: ${order.product}\nName: ${order.name}\nPhone: ${order.phone}\nPayment: ${order.payment}\nTrnx ID: ${order.trnx}\nDate: ${order.date}`
-    })
-  })
-  .then(res=>res.json()).then(data=>console.log("📩 SMS Sent:",data))
-  .catch(err=>console.error("❌ SMS Error:",err));
+// ===== SMS via Node Server =====
+async function sendSMSNotification(order){
+  try{
+    const message = `📦 Cloud Mart Order Received!
+Product: ${order.product}
+Name: ${order.name}
+Phone: ${order.phone}
+Payment: ${order.payment}
+Trnx ID: ${order.trnx}
+Date: ${order.date}`;
+    
+    const res = await fetch("http://localhost:3000/sendSMS",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ phone: order.phone, message })
+    });
+    const data = await res.json();
+    console.log("📩 SMS Sent:", data);
+  }catch(err){ console.error("❌ SMS Error:", err); }
 }
 
-/* Push Notification */
+// ===== Push Notification =====
 function sendPushNotification(order){
   if(Notification.permission==="granted"){
-    new Notification("📦 New Order Received",{ body:`Product: ${order.product}\nCustomer: ${order.name}\nPhone: ${order.phone}`, icon:"logo.png" });
+    new Notification("📦 New Order Received",{
+      body:`Product: ${order.product}\nCustomer: ${order.name}\nPhone: ${order.phone}`,
+      icon:"logo.png"
+    });
   } else if(Notification.permission!=="denied"){
-    Notification.requestPermission().then(p=>{ if(p==="granted"){ new Notification("📦 New Order Received",{ body:`Product: ${order.product}\nCustomer: ${order.name}`, icon:"logo.png" }); } });
+    Notification.requestPermission().then(permission=>{
+      if(permission==="granted"){
+        new Notification("📦 New Order Received",{
+          body:`Product: ${order.product}\nCustomer: ${order.name}`,
+          icon:"logo.png"
+        });
+      }
+    });
   }
 }
 
-/* Order Submit */
-document.getElementById("orderForm").addEventListener("submit",e=>{
+// ===== Order Submit =====
+document.getElementById("orderForm").addEventListener("submit", async e=>{
   e.preventDefault();
   const newOrder={
     product:orderProduct.value,
@@ -246,21 +290,25 @@ document.getElementById("orderForm").addEventListener("submit",e=>{
     date:new Date().toLocaleString()
   };
   const orderRef=push(ref(db,"orders"));
-  set(orderRef,newOrder).then(()=>{
+  set(orderRef,newOrder).then(async ()=>{
     alert("Order Submitted!");
     printInvoice(newOrder);
-    sendSMSNotification(newOrder); // ✅ SMS via server
-    sendPushNotification(newOrder); // ✅ Push
+
+    // 🔔 Notifications
+    await sendSMSNotification(newOrder); // ✅ SMS
+    sendPushNotification(newOrder);      // ✅ Browser Push
+
     e.target.reset();
     closeModal();
   });
 });
 
-/* Completed Orders */
+// ===== Completed Orders =====
 onValue(ref(db,"completedOrders"),snap=>{
   completedList.innerHTML="";
   if(snap.exists()){
-    let arr=[]; snap.forEach(child=>arr.push(child.val()));
+    let arr=[];
+    snap.forEach(child=>arr.push(child.val()));
     arr.slice(-5).forEach(o=>{
       let tr=document.createElement("tr");
       tr.innerHTML=`<td>${o.product}</td><td>${o.payment}</td><td>${o.trnx}</td><td>${o.date}</td>`;
@@ -269,15 +317,14 @@ onValue(ref(db,"completedOrders"),snap=>{
   }
 });
 
-/* Events */
+// ===== Events =====
 search.addEventListener("input",renderProducts);
 categoryFilter.addEventListener("change",renderProducts);
 
-/* Order Panel Toggle */
+// ===== Order Panel Toggle =====
 const orderPanel=document.getElementById("orderStatusPanel");
 document.getElementById("orderStatusBtn").addEventListener("click",()=>{ orderPanel.classList.add("show"); });
 document.getElementById("closeOrderPanel").addEventListener("click",()=>{ orderPanel.classList.remove("show"); });
-
 </script>
 </body>
 </html>
